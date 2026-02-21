@@ -26,7 +26,7 @@ env:
 
 jobs:
   destroy:
-    name: Destroy Infrastructure (${{ inputs.environment }})
+    name: Destroy Infra (${{ inputs.environment }})
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
