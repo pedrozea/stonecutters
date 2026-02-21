@@ -121,7 +121,6 @@ This repo uses **GitHub Actions** for Terraform plan/apply and destroy. Workflow
    - `TF_BACKEND_RG_NAME` – Resource group of the Terraform state storage account.
    - `TF_BACKEND_STORAGE_ACCOUNT` – Storage account name for state.
    - `TF_BACKEND_CONTAINER` – Container name (e.g. `tfstate`).
-
    The state file key is derived from the environment choice: `lab-04/dev.tfstate` or `lab-04/prod.tfstate` (folder within the container). The tfvars file used is `dev.tfvars` or `prod.tfvars` accordingly.
 
 4. **Azure OIDC**: Configure an Azure AD app registration with federated credentials for GitHub (repository and branch/ref). Grant the identity access to the subscription and to the state storage account (e.g. Storage Blob Data Contributor). See [GitHub: OpenID Connect in Azure](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-azure).
