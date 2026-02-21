@@ -30,6 +30,29 @@ variable "tags_extra" {
   default     = {}
 }
 
+# ---- Virtual Network (Hub) ----
+variable "vnet_address_space" {
+  description = "Address space for the Hub VNet (e.g. ['10.0.0.0/16'])"
+  type        = list(string)
+}
+
+variable "vnet_dns_servers" {
+  description = "Custom DNS servers for the VNet"
+  type        = list(string)
+  default     = []
+}
+
+variable "vnet_subnets" {
+  description = "Map of subnets for the Hub VNet. Each subnet: address_prefix, optional delegation_name/delegation_service"
+  type = map(object({
+    address_prefix     = string
+    delegation_name    = optional(string)
+    delegation_service = optional(string, "Microsoft.Network/networkInterfaces")
+    delegation_actions = optional(list(string), ["Microsoft.Network/networkInterfaces/*"])
+  }))
+  default = {}
+}
+
 locals {
   tags = merge(var.tags_common, var.tags_extra)
 }
