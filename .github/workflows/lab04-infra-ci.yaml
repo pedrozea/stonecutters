@@ -25,7 +25,7 @@ env:
 
 jobs:
   plan:
-    name: Terraform Plan
+    name: Plan Infrastructure (${{ inputs.environment }})
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
@@ -69,7 +69,7 @@ jobs:
           terraform_version: latest
           terraform_wrapper: false
 
-      - name: Terraform Init
+      - name: Terraform Init (${{ inputs.environment }})
         working-directory: ${{ env.TF_DIR }}
         run: |
           terraform init \
@@ -78,11 +78,11 @@ jobs:
             -backend-config="container_name=$TF_BACKEND_CONTAINER" \
             -backend-config="key=$TF_BACKEND_KEY"
 
-      - name: Terraform Validate
+      - name: Terraform Validate (${{ inputs.environment }})
         working-directory: ${{ env.TF_DIR }}
         run: terraform validate
 
-      - name: Terraform Plan
+      - name: Terraform Plan (${{ inputs.environment }})
         id: plan
         working-directory: ${{ env.TF_DIR }}
         env:
@@ -93,14 +93,14 @@ jobs:
           CHANGES=$(terraform show -json tfplan | jq '[.resource_changes[]? | select(.change.actions[]? != "no-op")] | length > 0')
           echo "has_changes=$CHANGES" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Plan
+      - name: Upload Plan (${{ inputs.environment }})
         uses: actions/upload-artifact@v4
         with:
           name: tfplan-${{ inputs.environment }}
           path: ${{ env.TF_DIR }}/tfplan
 
   apply:
-    name: Terraform Apply
+    name: Deploy Infrastructure (${{ inputs.environment }})
     runs-on: ubuntu-latest
     needs: plan
     if: success() && needs.plan.outputs.changes_present == 'true'

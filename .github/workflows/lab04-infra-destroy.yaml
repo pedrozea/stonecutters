@@ -24,7 +24,7 @@ env:
 
 jobs:
   destroy:
-    name: Terraform Destroy
+    name: Destroy Infrastructure (${{ inputs.environment }})
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
