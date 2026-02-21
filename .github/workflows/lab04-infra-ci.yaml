@@ -1,0 +1,151 @@
+# LAB04: Terraform Plan + Apply (Secure Hub-Spoke Fintech)
+# Replaces Azure DevOps pipeline lab04-infra-ci.yaml
+# Run manually or via workflow_dispatch with environment selection.
+
+name: Lab04 Infra CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: true
+        default: 'Dev'
+        type: choice
+        options:
+          - Dev
+          - Prod
+
+permissions:
+  contents: read
+  id-token: write   # required for Azure OIDC
+
+env:
+  TF_DIR: lab04-secure-hub-spoke-fintech/infrastructure/terraform/root
+
+jobs:
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    outputs:
+      changes_present: ${{ steps.plan.outputs.has_changes }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Debug paths (optional)
+        run: |
+          echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
+          pwd
+          ls -la "$GITHUB_WORKSPACE/$TF_DIR" 2>/dev/null || true
+        env:
+          TF_DIR: ${{ env.TF_DIR }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+          terraform_wrapper: false
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_DIR }}
+        env:
+          ARM_USE_OIDC: true
+          TF_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.TF_BACKEND_RG_NAME }}
+          TF_BACKEND_STORAGE_ACCOUNT: ${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}
+          TF_BACKEND_CONTAINER: ${{ secrets.TF_BACKEND_CONTAINER }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=$TF_BACKEND_RESOURCE_GROUP_NAME" \
+            -backend-config="storage_account_name=$TF_BACKEND_STORAGE_ACCOUNT" \
+            -backend-config="container_name=$TF_BACKEND_CONTAINER" \
+            -backend-config="key=$TF_BACKEND_KEY"
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_DIR }}
+        env:
+          ARM_USE_OIDC: true
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: ${{ env.TF_DIR }}
+        env:
+          ARM_USE_OIDC: true
+          HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+        run: |
+          TF_VARS_FILE="../tfvars/${{ inputs.environment == 'Prod' && 'prod' || 'dev' }}.tfvars"
+          terraform plan -var-file="$TF_VARS_FILE" -out=tfplan
+          CHANGES=$(terraform show -json tfplan | jq '[.resource_changes[]? | select(.change.actions[]? != "no-op")] | length > 0')
+          echo "has_changes=$CHANGES" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment }}
+          path: ${{ env.TF_DIR }}/tfplan
+
+  apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: plan
+    if: success() && needs.plan.outputs.changes_present == 'true'
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ inputs.environment }}
+
+      - name: Place plan in Terraform root
+        run: mkdir -p "${{ env.TF_DIR }}" && mv tfplan "${{ env.TF_DIR }}/tfplan"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+          terraform_wrapper: false
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_DIR }}
+        env:
+          ARM_USE_OIDC: true
+          TF_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.TF_BACKEND_RG_NAME }}
+          TF_BACKEND_STORAGE_ACCOUNT: ${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}
+          TF_BACKEND_CONTAINER: ${{ secrets.TF_BACKEND_CONTAINER }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=$TF_BACKEND_RESOURCE_GROUP_NAME" \
+            -backend-config="storage_account_name=$TF_BACKEND_STORAGE_ACCOUNT" \
+            -backend-config="container_name=$TF_BACKEND_CONTAINER" \
+            -backend-config="key=$TF_BACKEND_KEY"
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_DIR }}
+        env:
+          ARM_USE_OIDC: true
+          HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+        run: terraform apply -auto-approve tfplan

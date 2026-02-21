@@ -1,0 +1,70 @@
+# LAB04: Terraform Destroy (Secure Hub-Spoke Fintech)
+# Replaces Azure DevOps pipeline lab04-infra-destroy.yaml
+
+name: Lab04 Infra Destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: true
+        default: 'Dev'
+        type: choice
+        options:
+          - Dev
+          - Prod
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TF_DIR: lab04-secure-hub-spoke-fintech/infrastructure/terraform/root
+
+jobs:
+  destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+          terraform_wrapper: false
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_DIR }}
+        env:
+          ARM_USE_OIDC: true
+          TF_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.TF_BACKEND_RG_NAME }}
+          TF_BACKEND_STORAGE_ACCOUNT: ${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}
+          TF_BACKEND_CONTAINER: ${{ secrets.TF_BACKEND_CONTAINER }}
+          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=$TF_BACKEND_RESOURCE_GROUP_NAME" \
+            -backend-config="storage_account_name=$TF_BACKEND_STORAGE_ACCOUNT" \
+            -backend-config="container_name=$TF_BACKEND_CONTAINER" \
+            -backend-config="key=$TF_BACKEND_KEY"
+
+      - name: Terraform Destroy
+        working-directory: ${{ env.TF_DIR }}
+        env:
+          ARM_USE_OIDC: true
+          HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
+        run: |
+          TF_VARS_FILE="../tfvars/${{ inputs.environment == 'Prod' && 'prod' || 'dev' }}.tfvars"
+          terraform destroy -var-file="$TF_VARS_FILE" -auto-approve
