@@ -1,3 +1,7 @@
+# =============================================================================
+# PROVIDERS - Versions and configuration
+# =============================================================================
+
 terraform {
   required_version = ">= 1.0"
 
@@ -6,7 +10,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "4.52.0"
     }
-
     hostinger = {
       source  = "hostinger/hostinger"
       version = "0.1.22"
@@ -18,6 +21,5 @@ provider "azurerm" {
   features {}
 }
 
-provider "hostinger" {
-
-}
+# Hostinger: token via HOSTINGER_API_TOKEN env var (e.g. in CI)
+provider "hostinger" {}

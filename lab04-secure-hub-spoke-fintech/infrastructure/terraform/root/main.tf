@@ -1,6 +1,7 @@
-# ----------------------------------------------------
-# BASELINE
-# ----------------------------------------------------
+# =============================================================================
+# MAIN - Core infrastructure resources
+# =============================================================================
+# Baseline: Resource Group. Expand with Hub-Spoke, Firewall, Bastion, etc.
 
 # ---- Resource Group ----
 resource "azurerm_resource_group" "rg" {

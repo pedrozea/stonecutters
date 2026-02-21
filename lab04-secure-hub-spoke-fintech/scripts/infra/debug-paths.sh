@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
+# Debug CI paths: prints workspace structure for troubleshooting Terraform runs.
+# Compatible with GitHub Actions (GITHUB_WORKSPACE) and Azure DevOps (BUILD_SOURCESDIRECTORY).
 set -euo pipefail
 
-# Colores para mejor legibilidad en logs de CI (GitHub Actions, Azure DevOps, etc.)
+# ---- Colors for CI log readability ----
 BLUE='\033[0;34m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-# Raíz del repo: GitHub Actions usa GITHUB_WORKSPACE; Azure DevOps usa BUILD_SOURCESDIRECTORY
 ROOT="${GITHUB_WORKSPACE:-${BUILD_SOURCESDIRECTORY:-.}}"
 
 echo -e "${BLUE}================== DEBUG DE RUTAS ===================${NC}"
@@ -18,7 +19,7 @@ echo -e "\n${GREEN}2. Raíz del repo (GITHUB_WORKSPACE o BUILD_SOURCESDIRECTORY)
 echo "$ROOT"
 
 echo -e "\n${GREEN}3. Estructura de la raíz (2 niveles):${NC}"
-# tree para ver la raíz; si no está instalado, usar find
+# Prefer tree; fallback to find if not installed
 if command -v tree &>/dev/null; then
   tree -L 2 "$ROOT" 2>/dev/null || true
 else

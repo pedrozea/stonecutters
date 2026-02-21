@@ -1,5 +1,7 @@
-# LAB04: Terraform Destroy (Secure Hub-Spoke Fintech)
-# Replaces Azure DevOps pipeline lab04-infra-destroy.yaml
+# =============================================================================
+# LAB04 Infra Destroy - Terraform destroy
+# =============================================================================
+# Manual run: choose Development or Production. Uses same state key as deploy.
 
 name: Lab04 Infra Destroy
 
@@ -17,7 +19,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write
+  id-token: write   # Required for Azure OIDC
 
 env:
   TF_DIR: lab04-secure-hub-spoke-fintech/infrastructure/terraform/root
@@ -69,5 +71,6 @@ jobs:
         env:
           HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
         run: |
+          # dev.tfvars or prod.tfvars based on environment choice
           TF_VARS_FILE="../tfvars/${{ inputs.environment == 'Production' && 'prod' || 'dev' }}.tfvars"
           terraform destroy -var-file="$TF_VARS_FILE" -auto-approve

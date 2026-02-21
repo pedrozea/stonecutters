@@ -1,8 +1,9 @@
-# LAB04: Terraform Plan + Apply (Secure Hub-Spoke Fintech)
-# Replaces Azure DevOps pipeline lab04-infra-ci.yaml
-# Run manually or via workflow_dispatch with environment selection.
+# =============================================================================
+# LAB04 Infra Deploy - Terraform plan + apply
+# =============================================================================
+# Manual run: choose Development or Production. State: lab-04/{dev|prod}.tfstate
 
-name: Lab04 Infra CI
+name: Lab04 Infra Deploy
 
 on:
   workflow_dispatch:
@@ -18,14 +19,17 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # required for Azure OIDC
+  id-token: write   # Required for Azure OIDC federation
 
 env:
   TF_DIR: lab04-secure-hub-spoke-fintech/infrastructure/terraform/root
 
+# -----------------------------------------------------------------------------
+# Jobs: Plan (always) -> Apply (only if plan has changes)
+# -----------------------------------------------------------------------------
 jobs:
   plan:
-    name: Plan Infrastructure (${{ inputs.environment }})
+    name: Plan Infra (${{ inputs.environment }})
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
 
@@ -34,7 +38,7 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_USE_OIDC: true
-      # Backend config (from vars - non-sensitive identifiers)
+      # Backend: vars for storage identifiers; key derived from environment
       TF_BACKEND_RG_NAME: ${{ vars.TF_BACKEND_RG_NAME }}
       TF_BACKEND_STORAGE_ACCOUNT: ${{ vars.TF_BACKEND_STORAGE_ACCOUNT }}
       TF_BACKEND_CONTAINER: ${{ vars.TF_BACKEND_CONTAINER }}
@@ -48,13 +52,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug paths (optional)
+      - name: Debug paths
         run: |
           echo "GITHUB_WORKSPACE: $GITHUB_WORKSPACE"
           pwd
-          ls -la "$GITHUB_WORKSPACE/$TF_DIR" 2>/dev/null || true
-        env:
-          TF_DIR: ${{ env.TF_DIR }}
+          ls -la "$GITHUB_WORKSPACE/" 2>/dev/null || true
 
       - name: Azure Login (OIDC)
         uses: azure/login@v2
@@ -69,7 +71,7 @@ jobs:
           terraform_version: latest
           terraform_wrapper: false
 
-      - name: Terraform Init (${{ inputs.environment }})
+      - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
         run: |
           terraform init \
@@ -78,27 +80,29 @@ jobs:
             -backend-config="container_name=$TF_BACKEND_CONTAINER" \
             -backend-config="key=$TF_BACKEND_KEY"
 
-      - name: Terraform Validate (${{ inputs.environment }})
+      - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}
         run: terraform validate
 
-      - name: Terraform Plan (${{ inputs.environment }})
+      - name: Terraform Plan
         id: plan
         working-directory: ${{ env.TF_DIR }}
         env:
           HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
         run: |
+          # dev.tfvars for Development, prod.tfvars for Production
           TF_VARS_FILE="../tfvars/${{ inputs.environment == 'Production' && 'prod' || 'dev' }}.tfvars"
           terraform plan -var-file="$TF_VARS_FILE" -out=tfplan
           CHANGES=$(terraform show -json tfplan | jq '[.resource_changes[]? | select(.change.actions[]? != "no-op")] | length > 0')
           echo "has_changes=$CHANGES" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Plan (${{ inputs.environment }})
+      - name: Upload Plan
         uses: actions/upload-artifact@v4
         with:
           name: tfplan-${{ inputs.environment }}
           path: ${{ env.TF_DIR }}/tfplan
 
+  # Apply runs only when plan reports changes
   apply:
     name: Deploy Infrastructure (${{ inputs.environment }})
     runs-on: ubuntu-latest

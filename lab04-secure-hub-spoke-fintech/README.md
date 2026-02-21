@@ -1,8 +1,6 @@
 # LAB04: Deploy a Secure Hub and Spoke Network with Azure Firewall
----
 
 ## Objetivo
----
 
 Diseñar, desplegar y operar una arquitectura mínima pero realista en Azure para una fintech, aplicando seguridad por defecto, trazabilidad, IaC reusable y CI/CD con controles, como en producción
 
@@ -17,9 +15,7 @@ Diseñar, desplegar y operar una arquitectura mínima pero realista en Azure par
 - Firewall
 - Service Endpoint, Private Endpoint
 
-
 ## Deployment steps
----
 
 1. **Crear estructura del repositorio Base del proyecto.**
    Objetivo: que Terraform y CI/CD funcionen antes de crear recursos.
@@ -28,7 +24,7 @@ Diseñar, desplegar y operar una arquitectura mínima pero realista en Azure par
         - /envs/dev y /envs/prod con el “root module”
         - /pipelines/templates (templates YAML reutilizables)
         - /scripts/validate (controles custom)
-    - Estándares
+    - Estándares (see [CODE_STYLE.md](CODE_STYLE.md))
     - Backend
     - Naming
     - **GitHub:** Secrets and/or environment variables (see [CI/CD setup](#cicd-github-actions) below).  
@@ -95,8 +91,6 @@ Diseñar, desplegar y operar una arquitectura mínima pero realista en Azure par
    - nslookup <acr>.azurecr.io → IP privada
    - Desde VM en spoke: pull de ACR sin salida pública
    - KV/Storage accesibles por private endpoint y bloqueados públicamente
-
----
 
 ## CI/CD (GitHub Actions)
 
