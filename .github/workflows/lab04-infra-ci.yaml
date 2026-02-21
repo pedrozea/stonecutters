@@ -10,11 +10,11 @@ on:
       environment:
         description: 'Environment'
         required: true
-        default: 'Dev'
+        default: 'Development'
         type: choice
         options:
-          - Dev
-          - Prod
+          - Development
+          - Production
 
 permissions:
   contents: read
@@ -28,6 +28,18 @@ jobs:
     name: Terraform Plan
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_USE_OIDC: true
+      # Backend config (from vars - non-sensitive identifiers)
+      TF_BACKEND_RG_NAME: ${{ vars.TF_BACKEND_RG_NAME }}
+      TF_BACKEND_STORAGE_ACCOUNT: ${{ vars.TF_BACKEND_STORAGE_ACCOUNT }}
+      TF_BACKEND_CONTAINER: ${{ vars.TF_BACKEND_CONTAINER }}
+      # State key: lab-04/dev.tfstate or lab-04/prod.tfstate (folder within container)
+      TF_BACKEND_KEY: lab-04/${{ inputs.environment == 'Production' && 'prod' || 'dev' }}.tfstate
 
     outputs:
       changes_present: ${{ steps.plan.outputs.has_changes }}
@@ -44,12 +56,6 @@ jobs:
         env:
           TF_DIR: ${{ env.TF_DIR }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: latest
-          terraform_wrapper: false
-
       - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
@@ -57,35 +63,32 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+          terraform_wrapper: false
+
       - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
-        env:
-          ARM_USE_OIDC: true
-          TF_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.TF_BACKEND_RG_NAME }}
-          TF_BACKEND_STORAGE_ACCOUNT: ${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}
-          TF_BACKEND_CONTAINER: ${{ secrets.TF_BACKEND_CONTAINER }}
-          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
         run: |
           terraform init \
-            -backend-config="resource_group_name=$TF_BACKEND_RESOURCE_GROUP_NAME" \
+            -backend-config="resource_group_name=$TF_BACKEND_RG_NAME" \
             -backend-config="storage_account_name=$TF_BACKEND_STORAGE_ACCOUNT" \
             -backend-config="container_name=$TF_BACKEND_CONTAINER" \
             -backend-config="key=$TF_BACKEND_KEY"
 
       - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}
-        env:
-          ARM_USE_OIDC: true
         run: terraform validate
 
       - name: Terraform Plan
         id: plan
         working-directory: ${{ env.TF_DIR }}
         env:
-          ARM_USE_OIDC: true
           HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
         run: |
-          TF_VARS_FILE="../tfvars/${{ inputs.environment == 'Prod' && 'prod' || 'dev' }}.tfvars"
+          TF_VARS_FILE="../tfvars/${{ inputs.environment == 'Production' && 'prod' || 'dev' }}.tfvars"
           terraform plan -var-file="$TF_VARS_FILE" -out=tfplan
           CHANGES=$(terraform show -json tfplan | jq '[.resource_changes[]? | select(.change.actions[]? != "no-op")] | length > 0')
           echo "has_changes=$CHANGES" >> "$GITHUB_OUTPUT"
@@ -102,6 +105,16 @@ jobs:
     needs: plan
     if: success() && needs.plan.outputs.changes_present == 'true'
     environment: ${{ inputs.environment }}
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      ARM_USE_OIDC: true
+      TF_BACKEND_RG_NAME: ${{ vars.TF_BACKEND_RG_NAME }}
+      TF_BACKEND_STORAGE_ACCOUNT: ${{ vars.TF_BACKEND_STORAGE_ACCOUNT }}
+      TF_BACKEND_CONTAINER: ${{ vars.TF_BACKEND_CONTAINER }}
+      TF_BACKEND_KEY: lab-04/${{ inputs.environment == 'Production' && 'prod' || 'dev' }}.tfstate
 
     steps:
       - name: Checkout
@@ -130,15 +143,9 @@ jobs:
 
       - name: Terraform Init
         working-directory: ${{ env.TF_DIR }}
-        env:
-          ARM_USE_OIDC: true
-          TF_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.TF_BACKEND_RG_NAME }}
-          TF_BACKEND_STORAGE_ACCOUNT: ${{ secrets.TF_BACKEND_STORAGE_ACCOUNT }}
-          TF_BACKEND_CONTAINER: ${{ secrets.TF_BACKEND_CONTAINER }}
-          TF_BACKEND_KEY: ${{ secrets.TF_BACKEND_KEY }}
         run: |
           terraform init \
-            -backend-config="resource_group_name=$TF_BACKEND_RESOURCE_GROUP_NAME" \
+            -backend-config="resource_group_name=$TF_BACKEND_RG_NAME" \
             -backend-config="storage_account_name=$TF_BACKEND_STORAGE_ACCOUNT" \
             -backend-config="container_name=$TF_BACKEND_CONTAINER" \
             -backend-config="key=$TF_BACKEND_KEY"
@@ -146,6 +153,5 @@ jobs:
       - name: Terraform Apply
         working-directory: ${{ env.TF_DIR }}
         env:
-          ARM_USE_OIDC: true
           HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
         run: terraform apply -auto-approve tfplan

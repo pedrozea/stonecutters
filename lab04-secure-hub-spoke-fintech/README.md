@@ -104,23 +104,26 @@ This repo uses **GitHub Actions** for Terraform plan/apply and destroy. Workflow
 
 | Workflow | Purpose |
 |----------|---------|
-| `lab04-infra-ci.yaml` | Plan + Apply (manual run, choose Dev or Prod) |
-| `lab04-infra-destroy.yaml` | Destroy (manual run, choose Dev or Prod) |
+| `lab04-infra-ci.yaml` | Plan + Apply (manual run, choose Development or Production) |
+| `lab04-infra-destroy.yaml` | Destroy (manual run, choose Development or Production) |
 
 ### Required setup
 
-1. **GitHub Environments** (optional but recommended): Create environments `Dev` and `Prod` in the repo (Settings → Environments). You can add protection rules and environment-specific secrets.
+1. **GitHub Environments** (optional but recommended): Create environments `Development` and `Production` in the repo (Settings → Environments). You can add protection rules and environment-specific secrets.
 
 2. **Secrets** (repository or environment level):
    - `AZURE_CLIENT_ID` – App (client) ID of the service principal or app registration used for OIDC.
    - `AZURE_TENANT_ID` – Azure AD tenant ID.
    - `AZURE_SUBSCRIPTION_ID` – Azure subscription ID.
+   - `HOSTINGER_API_TOKEN` – Only if your root module uses the Hostinger provider.
+
+3. **Variables** (repository or environment level, non-sensitive):
    - `TF_BACKEND_RG_NAME` – Resource group of the Terraform state storage account.
    - `TF_BACKEND_STORAGE_ACCOUNT` – Storage account name for state.
    - `TF_BACKEND_CONTAINER` – Container name (e.g. `tfstate`).
-   - `TF_BACKEND_KEY` – State file key (e.g. `lab04-dev.terraform.tfstate`).
-   - `HOSTINGER_API_TOKEN` – Only if your root module uses the Hostinger provider.
 
-3. **Azure OIDC**: Configure an Azure AD app registration with federated credentials for GitHub (repository and branch/ref). Grant the identity access to the subscription and to the state storage account (e.g. Storage Blob Data Contributor). See [GitHub: OpenID Connect in Azure](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-azure).
+   The state file key is derived from the environment choice: `lab-04/dev.tfstate` or `lab-04/prod.tfstate` (folder within the container). The tfvars file used is `dev.tfvars` or `prod.tfvars` accordingly.
+
+4. **Azure OIDC**: Configure an Azure AD app registration with federated credentials for GitHub (repository and branch/ref). Grant the identity access to the subscription and to the state storage account (e.g. Storage Blob Data Contributor). See [GitHub: OpenID Connect in Azure](https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-azure).
 
 The pipelines under `pipelines/infra/` are the original **Azure DevOps** YAML definitions (kept for reference). Use the workflows in `.github/workflows/` for this GitHub repo.
