@@ -98,12 +98,12 @@ This repo uses **GitHub Actions** for Terraform plan/apply and destroy. Workflow
 
 | Workflow | Purpose |
 |----------|---------|
-| `lab04-infra-ci.yaml` | Plan + Apply (manual run, choose Development or Production) |
-| `lab04-infra-destroy.yaml` | Destroy (manual run, choose Development or Production) |
+| `lab04-infra-ci.yaml` | Plan + Apply (manual run, choose Dev or Prod) |
+| `lab04-infra-destroy.yaml` | Destroy (manual run, choose Dev or Prod) |
 
 ### Required setup
 
-1. **GitHub Environments** (optional but recommended): Create environments `Development` and `Production` in the repo (Settings → Environments). You can add protection rules and environment-specific secrets.
+1. **GitHub Environments** (optional but recommended): Create environments `Dev` and `Prod` in the repo (Settings → Environments). You can add protection rules and environment-specific secrets.
 
 2. **Secrets** (repository or environment level):
    - `AZURE_CLIENT_ID` – App (client) ID of the service principal or app registration used for OIDC.
