@@ -10,15 +10,9 @@ tags_extra = {
   env = "Dev"
 }
 
-# ---- Hub VNet ----
+# ---- VNet ----
 vnet_address_space = ["10.0.0.0/16"]
 vnet_subnets = {
-  # Azure Firewall subnet (no delegation required)
-  "AzureFirewallSubnet" = {
-    address_prefix = "10.0.1.0/26"
-  }
-  # Bastion subnet (requires delegation)
-  "AzureBastionSubnet" = {
-    address_prefix     = "10.0.2.0/26"
-  }
+  "AzureFirewallSubnet" = "10.0.1.0/26"
+  "AzureBastionSubnet"  = "10.0.2.0/26"
 }

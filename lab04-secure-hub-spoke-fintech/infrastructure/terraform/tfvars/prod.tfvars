@@ -11,12 +11,8 @@ tags_extra = {
 }
 
 # ---- Hub VNet ----
-vnet_address_space = ["10.0.0.0/16"]
+vnet_address_space = ["10.1.0.0/16"]
 vnet_subnets = {
-  "AzureFirewallSubnet" = {
-    address_prefix = "10.0.1.0/26"
-  }
-  "AzureBastionSubnet" = {
-    address_prefix     = "10.0.2.0/26"
-  }
+  "AzureFirewallSubnet" = "10.1.1.0/26"
+  "AzureBastionSubnet"  = "10.1.2.0/26"
 }
