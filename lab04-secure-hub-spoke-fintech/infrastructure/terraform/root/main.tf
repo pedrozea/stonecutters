@@ -11,7 +11,7 @@ resource "azurerm_resource_group" "rg" {
 }
 
 # ---- Virtual Network (Hub) - remote module ----
-module "vnet_hub" {
+module "virtual_network" {
   source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/virtual-network?ref=v0.1.0"
 
   name                = "vnet-${var.resource_suffix}"

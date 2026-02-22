@@ -30,9 +30,9 @@ variable "tags_extra" {
   default     = {}
 }
 
-# ---- Virtual Network (Hub) ----
+# ---- Virtual Network ----
 variable "vnet_address_space" {
-  description = "Address space for the Hub VNet (e.g. ['10.0.0.0/16'])"
+  description = "Address space for the VNet (e.g. ['10.0.0.0/16'])"
   type        = list(string)
 }
 
@@ -43,7 +43,7 @@ variable "vnet_dns_servers" {
 }
 
 variable "vnet_subnets" {
-  description = "Map of subnets for the Hub VNet. Each subnet: address_prefix, optional delegation_name/delegation_service"
+  description = "Map of subnets for the VNet. Each subnet: address_prefix, optional delegation_name/delegation_service"
   type = map(object({
     address_prefix     = string
     delegation_name    = optional(string)
