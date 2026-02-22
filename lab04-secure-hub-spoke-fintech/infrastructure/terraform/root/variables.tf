@@ -43,14 +43,9 @@ variable "vnet_dns_servers" {
 }
 
 variable "vnet_subnets" {
-  description = "Map of subnets for the VNet. Each subnet: address_prefix, optional delegation_name/delegation_service"
-  type = map(object({
-    address_prefix     = string
-    delegation_name    = optional(string)
-    delegation_service = optional(string, "Microsoft.Network/networkInterfaces")
-    delegation_actions = optional(list(string), ["Microsoft.Network/networkInterfaces/*"])
-  }))
-  default = {}
+  description = "Map of subnets for the VNet"
+  type        = map(string)
+  default     = {}
 }
 
 locals {
