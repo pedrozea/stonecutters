@@ -12,14 +12,12 @@ resource "azurerm_resource_group" "rg" {
 
 # ---- Virtual Network (Hub) - remote module ----
 module "virtual_network" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/virtual-network?ref=v0.1.0"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/virtual-network?ref=v0.2.0"
 
   name                = "vnet-${var.resource_suffix}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location
   address_space       = var.vnet_address_space
-  dns_servers         = var.vnet_dns_servers
   subnets             = var.vnet_subnets
   tags                = local.tags
 }
-
