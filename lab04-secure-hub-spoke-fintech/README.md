@@ -15,6 +15,10 @@ Diseñar, desplegar y operar una arquitectura mínima pero realista en Azure par
 - Firewall
 - Service Endpoint, Private Endpoint
 
+## Arquitectura
+
+![LAB04 Architecture](docs/images/LAB04.jpg)
+
 ## Deployment steps
 
 1. **Crear estructura del repositorio Base del proyecto.**
