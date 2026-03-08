@@ -22,9 +22,9 @@ module "hub_vnet" {
   address_space       = var.hub_address_space
 
   # ---- Subnets ----
-  firewall_subnet_prefix = var.hub_firewall_subnet_prefix
-  bastion_subnet_prefix  = var.hub_bastion_subnet_prefix
-  gateway_subnet_prefix  = var.hub_gateway_subnet_prefix
+  firewall_subnet_prefix = var.firewall_subnet_prefix
+  bastion_subnet_prefix  = var.bastion_subnet_prefix
+  gateway_subnet_prefix  = var.gateway_subnet_prefix
 
   tags = local.tags
 }

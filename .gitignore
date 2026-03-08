@@ -1,0 +1,12 @@
+# Ignorar la carpeta de binarios y módulos de Terraform (los 46 archivos)
+.terraform/
+
+# Ignorar archivos de estado local (muy importante por seguridad)
+*.tfstate
+*.tfstate.*
+
+# Ignorar variables de configuración local y secretos
+backend.hcl
+
+# Ignorar el archivo de log
+crash.log
