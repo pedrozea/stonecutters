@@ -17,8 +17,8 @@ module "hub_vnet" {
   source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.3.0"
 
   name                = "hub-vnet-${var.resource_suffix}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
   address_space       = var.hub_address_space
 
   # ---- Subnets ----
