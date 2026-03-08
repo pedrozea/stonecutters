@@ -3,16 +3,16 @@
 # =============================================================================
 
 # ---- Resource Group ----
-resource_suffix = "az104-lab04-dev-weu"
+resource_suffix = "pz-lab04-dev"
 location        = "westeurope"
 
 tags_extra = {
   env = "Dev"
 }
 
-# ---- VNet ----
-vnet_address_space = ["10.0.0.0/16"]
-vnet_subnets = {
-  "AzureFirewallSubnet" = "10.0.1.0/26"
-  "AzureBastionSubnet"  = "10.0.2.0/26"
-}
+# ---- Hub VNet ----
+hub_address_space = ["10.10.0.0/16"]
+
+firewall_subnet_prefix = "10.10.1.0/26"
+bastion_subnet_prefix  = "10.10.2.0/26"
+gateway_subnet_prefix  = "10.10.3.0/27"

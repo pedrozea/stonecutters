@@ -3,7 +3,7 @@
 # =============================================================================
 
 # ---- Resource Group ----
-resource_suffix = "az104-lab04-prod-weu"
+resource_suffix = "pz-lab04-prod"
 location        = "westeurope"
 
 tags_extra = {
@@ -11,8 +11,9 @@ tags_extra = {
 }
 
 # ---- Hub VNet ----
-vnet_address_space = ["10.1.0.0/16"]
-vnet_subnets = {
-  "AzureFirewallSubnet" = "10.1.1.0/26"
-  "AzureBastionSubnet"  = "10.1.2.0/26"
-}
+hub_address_space = ["10.20.0.0/16"]
+
+firewall_subnet_prefix = "10.20.1.0/26"
+bastion_subnet_prefix  = "10.20.2.0/26"
+gateway_subnet_prefix  = "10.20.3.0/27"
+

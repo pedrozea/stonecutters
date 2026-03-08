@@ -30,22 +30,25 @@ variable "tags_extra" {
   default     = {}
 }
 
-# ---- Virtual Network ----
-variable "vnet_address_space" {
-  description = "Address space for the VNet (e.g. ['10.0.0.0/16'])"
+# ---- Hub Virtual Network ----
+variable "hub_address_space" {
+  description = "Address space for the Hub VNet (e.g. ['10.0.0.0/16'])"
   type        = list(string)
 }
 
-variable "vnet_dns_servers" {
-  description = "Custom DNS servers for the VNet"
-  type        = list(string)
-  default     = []
+variable "hub_firewall_subnet_prefix" {
+  description = "Prefix for the Hub VNet Firewall subnet"
+  type        = string
 }
 
-variable "vnet_subnets" {
-  description = "Map of subnets for the VNet"
-  type        = map(string)
-  default     = {}
+variable "hub_bastion_subnet_prefix" {
+  description = "Prefix for the Hub VNet Bastion subnet"
+  type        = string
+}
+
+variable "hub_gateway_subnet_prefix" {
+  description = "Prefix for the Hub VNet Gateway subnet"
+  type        = string
 }
 
 locals {
