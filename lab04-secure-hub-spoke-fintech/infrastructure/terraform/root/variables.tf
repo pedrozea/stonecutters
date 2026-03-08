@@ -36,17 +36,17 @@ variable "hub_address_space" {
   type        = list(string)
 }
 
-variable "hub_firewall_subnet_prefix" {
+variable "firewall_subnet_prefix" {
   description = "Prefix for the Hub VNet Firewall subnet"
   type        = string
 }
 
-variable "hub_bastion_subnet_prefix" {
+variable "bastion_subnet_prefix" {
   description = "Prefix for the Hub VNet Bastion subnet"
   type        = string
 }
 
-variable "hub_gateway_subnet_prefix" {
+variable "gateway_subnet_prefix" {
   description = "Prefix for the Hub VNet Gateway subnet"
   type        = string
 }
