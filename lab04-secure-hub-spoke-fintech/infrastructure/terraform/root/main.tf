@@ -5,7 +5,7 @@
 
 # ---- Resource Group ----
 module "resource_group" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.3.0"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.4.0"
 
   name     = "rg-${var.resource_suffix}"
   location = var.location
@@ -14,9 +14,9 @@ module "resource_group" {
 
 # ---- Virtual Network (Hub) - remote module ----
 module "hub_vnet" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.3.0"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.4.0"
 
-  name                = "hub-vnet-${var.resource_suffix}"
+  name                = var.hub_vnet_name
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
   address_space       = var.hub_address_space
@@ -29,14 +29,36 @@ module "hub_vnet" {
   tags = local.tags
 }
 
+# ---- DEV Virtual Network (Spoke)  ----
 module "spoke_dev" {
   source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.4.0"
 
-  name                = "spoke-vnet-${var.resource_suffix}"
+  name                = var.spoke_dev_vnet_name
   resource_group_name = module.resource_group.name
   location            = module.resource_group.location
-  address_space       = var.spoke_address_space
-  subnets             = var.spoke_subnets
+  address_space       = var.spoke_dev_address_space
+  subnets             = var.spoke_dev_subnets
+
+  # Connection to Hub VNet
+  hub_vnet_id             = module.hub_vnet.vnet_id
+  hub_vnet_name           = module.hub_vnet.vnet_name
+  hub_resource_group_name = module.resource_group.name
+
+  # Temporary IP for Firewall
+  hub_firewall_private_ip = var.hub_firewall_private_ip
+
+  tags = local.tags
+}
+
+# ---- PROD Virtual Network (Spoke)  ----
+module "spoke_prod" {
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.4.0"
+
+  name                = var.spoke_prod_vnet_name
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  address_space       = var.spoke_prod_address_space
+  subnets             = var.spoke_prod_subnets
 
   # Connection to Hub VNet
   hub_vnet_id             = module.hub_vnet.vnet_id

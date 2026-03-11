@@ -18,7 +18,7 @@ variable "tags_common" {
   description = "Tags applied to all resources"
   type        = map(string)
   default = {
-    course = "AZ-104"
+    lab    = "Lab04"
     owner  = "Pedro Zea"
     source = "Terraform"
   }
@@ -31,6 +31,11 @@ variable "tags_extra" {
 }
 
 # ---- Hub Virtual Network ----
+variable "hub_vnet_name" {
+  description = "Name for the Hub VNet"
+  type        = string
+}
+
 variable "hub_address_space" {
   description = "Address space for the Hub VNet (e.g. ['10.0.0.0/16'])"
   type        = list(string)
@@ -51,17 +56,39 @@ variable "gateway_subnet_prefix" {
   type        = string
 }
 
-# ---- Spoke Virtual Network ----
-variable "spoke_address_space" {
-  description = "Address space for the Spoke VNet (e.g. ['10.1.0.0/16'])"
+# ---- DEV Spoke Virtual Network ----
+variable "spoke_dev_vnet_name" {
+  description = "Name for the Spoke VNet for Dev environment"
+  type        = string
+}
+
+variable "spoke_dev_address_space" {
+  description = "Address space for the Spoke VNet for Dev environment (e.g. ['10.1.0.0/16'])"
   type        = list(string)
 }
 
-variable "spoke_subnets" {
+variable "spoke_dev_subnets" {
   type        = map(string)
-  description = "Map of subnets for the Spoke VNet"
+  description = "Map of subnets for the Spoke VNet for Dev environment"
 }
 
+# ---- PROD Spoke Virtual Network ----
+variable "spoke_prod_vnet_name" {
+  description = "Name for the Spoke VNet for Prod environment"
+  type        = string
+}
+
+variable "spoke_prod_address_space" {
+  description = "Address space for the Spoke VNet for Prod environment (e.g. ['10.1.0.0/16'])"
+  type        = list(string)
+}
+
+variable "spoke_prod_subnets" {
+  type        = map(string)
+  description = "Map of subnets for the Spoke VNet for Dev environment"
+}
+
+# ---- Hub VNet Firewall Private IP ----  
 variable "hub_firewall_private_ip" {
   description = "Private IP address for the Hub VNet Firewall"
   type        = string

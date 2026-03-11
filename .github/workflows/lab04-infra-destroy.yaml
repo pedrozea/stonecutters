@@ -1,34 +1,25 @@
 # =============================================================================
 # LAB04 Infra Destroy - Terraform destroy
 # =============================================================================
-# Manual run: choose Dev or Prod. Uses same state key as deploy.
+# Manual run. Uses same state key as deploy.
 
 name: Lab04 Infra Destroy
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment'
-        required: true
-        default: 'Dev'
-        type: choice
-        options:
-          - Dev
-          - Prod
 
 permissions:
   contents: read
-  id-token: write   # Required for Azure OIDC
+  id-token: write # Required for Azure OIDC
 
 env:
   TF_DIR: lab04-secure-hub-spoke-fintech/infrastructure/terraform/root
+  TF_VARS_FILE: ../tfvars/lab04.tfvars
 
 jobs:
   destroy:
-    name: Destroy Infra (${{ inputs.environment }})
+    name: Destroy Infra
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
 
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -38,7 +29,7 @@ jobs:
       TF_BACKEND_RG_NAME: ${{ vars.TF_BACKEND_RG_NAME }}
       TF_BACKEND_STORAGE_ACCOUNT: ${{ vars.TF_BACKEND_STORAGE_ACCOUNT }}
       TF_BACKEND_CONTAINER: ${{ vars.TF_BACKEND_CONTAINER }}
-      TF_BACKEND_KEY: lab-04/${{ inputs.environment == 'Prod' && 'prod' || 'dev' }}.tfstate
+      TF_BACKEND_KEY: lab04.tfstate
 
     steps:
       - name: Checkout
@@ -71,6 +62,4 @@ jobs:
         env:
           HOSTINGER_API_TOKEN: ${{ secrets.HOSTINGER_API_TOKEN }}
         run: |
-          # dev.tfvars or prod.tfvars based on environment choice
-          TF_VARS_FILE="../tfvars/${{ inputs.environment == 'Prod' && 'prod' || 'dev' }}.tfvars"
           terraform destroy -var-file="$TF_VARS_FILE" -auto-approve
