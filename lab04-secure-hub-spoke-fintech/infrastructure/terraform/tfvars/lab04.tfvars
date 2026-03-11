@@ -20,18 +20,18 @@ gateway_subnet_prefix  = "10.1.3.0/27"
 
 # ---- DEV Spoke VNet ----
 spoke_dev_vnet_name     = "spoke-vnet-dev"
-spoke_dev_address_space = ["10.1.10.0/24"]
+spoke_dev_address_space = ["10.100.0.0/24"]
 spoke_dev_subnets = {
-  "snet-app-dev" = "10.1.10.0/27"
-  "snet-db-dev"  = "10.1.10.32/27"
+  "snet-app-dev" = "10.100.0.0/27"
+  "snet-db-dev"  = "10.100.32.0/27"
 }
 
 # ---- PROD Spoke VNet ----
 spoke_prod_vnet_name     = "spoke-vnet-prod"
-spoke_prod_address_space = ["10.1.90.0/24"]
+spoke_prod_address_space = ["10.200.0.0/24"]
 spoke_prod_subnets = {
-  "snet-app-prod" = "10.1.90.0/27"
-  "snet-db-prod"  = "10.1.90.32/27"
+  "snet-app-prod" = "10.200.0.0/27"
+  "snet-db-prod"  = "10.200.32.0/27"
 }
 
 # ---- Hub VNet Firewall Private IP ----
