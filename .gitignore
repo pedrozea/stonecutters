@@ -2,8 +2,8 @@
 .terraform/
 *.tfstate
 *.tfstate.*
-.terraform.lock.hcl
 
 # Local backend configs
+backend.hcl
 *.local.hcl
 *.backend.hcl
