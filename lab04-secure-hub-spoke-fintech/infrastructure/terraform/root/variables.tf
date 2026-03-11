@@ -51,6 +51,23 @@ variable "gateway_subnet_prefix" {
   type        = string
 }
 
+# ---- Spoke Virtual Network ----
+variable "spoke_address_space" {
+  description = "Address space for the Spoke VNet (e.g. ['10.1.0.0/16'])"
+  type        = list(string)
+}
+
+variable "spoke_subnets" {
+  type        = map(string)
+  description = "Map of subnets for the Spoke VNet"
+}
+
+variable "hub_firewall_private_ip" {
+  description = "Private IP address for the Hub VNet Firewall"
+  type        = string
+}
+
+# ---- Tags ----
 locals {
   tags = merge(var.tags_common, var.tags_extra)
 }

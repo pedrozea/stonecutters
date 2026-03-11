@@ -28,3 +28,23 @@ module "hub_vnet" {
 
   tags = local.tags
 }
+
+module "spoke_dev" {
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.4.0"
+
+  name                = "spoke-vnet-${var.resource_suffix}"
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  address_space       = var.spoke_address_space
+  subnets             = var.spoke_subnets
+
+  # Connection to Hub VNet
+  hub_vnet_id             = module.hub_vnet.vnet_id
+  hub_vnet_name           = module.hub_vnet.vnet_name
+  hub_resource_group_name = module.resource_group.name
+
+  # Temporary IP for Firewall
+  hub_firewall_private_ip = var.hub_firewall_private_ip
+
+  tags = local.tags
+}
