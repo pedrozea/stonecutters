@@ -7,7 +7,7 @@
 # =============================================================================
 
 module "resource_group" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.5.0"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.5.1"
 
   name     = "rg-${var.resource_suffix}"
   location = var.location
@@ -19,7 +19,7 @@ module "resource_group" {
 # =============================================================================
 
 module "hub_vnet" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.5.0"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.5.1"
 
   name                = var.hub_vnet_name
   resource_group_name = module.resource_group.name
@@ -39,7 +39,7 @@ module "hub_vnet" {
 # =============================================================================
 
 module "spokes" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.5.0"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.5.1"
   for_each = local.spoke_inventory
 
   name          = each.value.name
@@ -63,7 +63,7 @@ module "spokes" {
 # =============================================================================
 
 module "bastion" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.5.0"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.5.1"
 
   name                = "bas-shared-hub-${var.resource_suffix}"
   resource_group_name = module.resource_group.name
@@ -94,7 +94,7 @@ resource "local_file" "private_key" {
 # =============================================================================
 
 module "vms" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.5.0"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.5.1"
   for_each = local.vm_inventory
 
   name      = each.key
