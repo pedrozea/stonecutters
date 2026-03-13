@@ -68,3 +68,10 @@ output "vm_inventory_ips" {
     }
   }
 }
+
+output "vm_private_key" {
+  value     = tls_private_key.ssh_key.private_key_pem
+  sensitive = true
+  # Use terraform output -raw vm_private_key > lab04-key.pem to save the private key locally
+  # Use chmod 400 lab04-key.pem to set the correct permissions  
+}
