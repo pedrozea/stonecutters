@@ -44,23 +44,23 @@ locals {
     # ============== APP 1 - Dev ===============
     "vm-app1-dev-web" = {
       subnet_id = module.spokes["app1-dev"].subnet_ids["snet-app"]
-      size      = var.vm_size_app1_dev_web
+      vm_size   = var.vm_size_app1_dev_web
     }
 
     "vm-app1-dev-db" = {
       subnet_id = module.spokes["app1-dev"].subnet_ids["snet-db"]
-      size      = var.vm_size_app1_dev_db
+      vm_size   = var.vm_size_app1_dev_db
     }
 
     # ============== APP 1 - Prod ===============
     "vm-app1-prod-web" = {
       subnet_id = module.spokes["app1-prod"].subnet_ids["snet-app"]
-      size      = var.vm_size_app1_prod_web
+      vm_size   = var.vm_size_app1_prod_web
     }
 
     "vm-app1-prod-db" = {
       subnet_id = module.spokes["app1-prod"].subnet_ids["snet-db"]
-      size      = var.vm_size_app1_prod_db
+      vm_size   = var.vm_size_app1_prod_db
     }
 
     # ============== APP 2 - Dev ===============
