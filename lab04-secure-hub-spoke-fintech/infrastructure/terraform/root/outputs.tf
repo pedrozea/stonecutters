@@ -2,13 +2,19 @@
 # OUTPUTS - Values exposed for other modules or CI
 # =============================================================================
 
-# ---- Resource Group ----
+# =============================================================================
+# Resource Group
+# =============================================================================
+
 output "resource_group_name" {
   description = "Name of the created resource group"
   value       = module.resource_group.name
 }
 
-# ---- Hub VNet ----
+# =============================================================================
+# Hub VNet
+# =============================================================================
+
 output "hub_vnet_id" {
   value = module.hub_vnet.vnet_id
 }
@@ -17,20 +23,48 @@ output "hub_subnets" {
   value = module.hub_vnet.subnet_ids
 }
 
-# ---- DEV Spoke VNet ----
-output "spoke_dev_vnet_id" {
-  value = module.spoke_dev.vnet_id
+# =============================================================================
+# Spokes
+# =============================================================================
+
+output "spoke_vnet_ids" {
+  description = "IDs of the Spokes VNets deployed"
+  value = {
+    for k, v in module.spokes : k => v.vnet_id
+  }
 }
 
-output "spoke_dev_subnets" {
-  value = module.spoke_dev.subnet_ids
+output "spoke_subnets_summary" {
+  description = "Summary of the subnets for each Spoke"
+  value = {
+    for k, v in module.spokes : k => v.subnet_ids
+  }
 }
 
-# ---- PROD Spoke VNet ----
-output "spoke_prod_vnet_id" {
-  value = module.spoke_prod.vnet_id
+# =============================================================================
+# Bastion
+# =============================================================================
+
+output "bastion_host_name" {
+  description = "Name of the Bastion resource for connection"
+  value       = module.bastion.dns_name
 }
 
-output "spoke_prod_subnets" {
-  value = module.spoke_prod.subnet_ids
+output "bastion_public_ip" {
+  description = "Public IP of the Bastion (secure entry)"
+  value       = module.bastion.public_ip_address
+}
+
+# =============================================================================
+# VM List
+# =============================================================================
+
+output "vm_inventory_ips" {
+  description = "Inventory of VMs and their private IPs"
+  value = {
+    for k, v in module.vms : k => {
+      private_ip = v.private_ip
+      subnet_id  = v.subnet_id
+    }
+  }
 }
