@@ -59,10 +59,17 @@ variable "gateway_subnet_prefix" {
   type        = string
 }
 
-# ---- Hub VNet Firewall Private IP ----  
-variable "hub_firewall_private_ip" {
-  description = "Private IP address for the Hub VNet Firewall"
-  type        = string
+# ---- Hub VNet Firewall Network Rules ----
+variable "hub_firewall_network_rules" {
+  description = "Network rules for the Hub VNet Firewall"
+  type = list(object({
+    name                  = string
+    source_addresses      = list(string)
+    destination_addresses = list(string)
+    destination_ports     = list(string)
+    protocols             = list(string)
+  }))
+  default = []
 }
 
 # =============================================================================

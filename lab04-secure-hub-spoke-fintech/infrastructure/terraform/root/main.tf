@@ -29,7 +29,7 @@ module "rg_workloads" {
 # =============================================================================
 
 module "hub_vnet" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.5.1"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.6.0"
 
   name                = var.hub_vnet_name
   resource_group_name = module.rg_hub.name
@@ -49,7 +49,7 @@ module "hub_vnet" {
 # =============================================================================
 
 module "bastion" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.5.1"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.6.0"
 
   name                = "bas-shared-hub-${var.resource_suffix}"
   resource_group_name = module.rg_hub.name
@@ -59,11 +59,29 @@ module "bastion" {
 }
 
 # =============================================================================
+# Azure Firewall
+# =============================================================================
+
+module "firewall" {
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_firewall?ref=v0.6.0"
+
+  name                = "fw-shared-hub-${var.resource_suffix}"
+  resource_group_name = module.rg_hub.name
+  location            = var.location
+  subnet_id           = module.hub_vnet.subnet_ids["AzureFirewallSubnet"]
+
+  # Network rules
+  network_rules = var.hub_firewall_network_rules
+
+  tags = local.tags
+}
+
+# =============================================================================
 # Spoke VNets
 # =============================================================================
 
 module "spokes" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.5.1"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.6.0"
   for_each = local.spoke_inventory
 
   name          = each.value.name
@@ -77,7 +95,7 @@ module "spokes" {
   hub_vnet_id             = module.hub_vnet.vnet_id
   hub_vnet_name           = module.hub_vnet.vnet_name
   hub_resource_group_name = module.rg_hub.name
-  hub_firewall_private_ip = var.hub_firewall_private_ip
+  hub_firewall_private_ip = module.firewall.private_ip
 
   tags = local.tags
 }
@@ -104,7 +122,7 @@ resource "local_file" "private_key" {
 # =============================================================================
 
 module "vms" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.5.1"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.6.0"
   for_each = local.vm_inventory
 
   name      = each.key

@@ -14,10 +14,27 @@ tags_extra = {
 hub_vnet_name     = "hub-vnet-shared"
 hub_address_space = ["10.1.0.0/16"]
 
-firewall_subnet_prefix  = "10.1.1.0/26"
-bastion_subnet_prefix   = "10.1.2.0/26"
-gateway_subnet_prefix   = "10.1.3.0/27"
-hub_firewall_private_ip = "10.1.1.4"
+firewall_subnet_prefix = "10.1.1.0/26"
+bastion_subnet_prefix  = "10.1.2.0/26"
+gateway_subnet_prefix  = "10.1.3.0/27"
+
+# ---- Hub VNet Firewall Network Rules ----
+hub_firewall_network_rules = [
+  {
+    name                  = "Allow-Dev-to-Dev"
+    source_addresses      = ["10.100.0.0/16"]
+    destination_addresses = ["10.100.0.0/16"]
+    destination_ports     = ["*"]
+    protocols             = ["Any"]
+  },
+  {
+    name                  = "Allow-Prod-to-Prod"
+    source_addresses      = ["10.200.0.0/16"]
+    destination_addresses = ["10.200.0.0/16"]
+    destination_ports     = ["*"]
+    protocols             = ["Any"]
+  }
+]
 
 # =============================================================================
 # APP 1 - Spokes (Dev & Prod)
