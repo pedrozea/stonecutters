@@ -80,6 +80,12 @@ Diseñar, desplegar y operar una arquitectura mínima pero realista en Azure par
 8. **Secretos (Azure Key Vault)**
     Guardar la contraseña de la DB o mover la SSH Private Key aquí. Es el estándar para manejar secretos.
 
+9. **Application Workload (Web App + DB:)**
+   Instalar algo real (un Nginx o una pequeña app en Python/Node) para hacer pruebas de conectividad mas avanzadas y como validación de negocio.
+
+10. **Private Endpoints**
+    En lugar de que la base de datos tenga una IP pública, configurar una IP privada dentro de mi VNet.
+
 9. **App Gateway WAF + “API solo por entrada única”**
    Objetivo: endpoint público único (controlado) y backend privado.
    - App Gateway WAF v2 en subnet dedicada
