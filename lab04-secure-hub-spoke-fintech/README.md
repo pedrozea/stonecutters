@@ -48,28 +48,39 @@ Diseñar, desplegar y operar una arquitectura mínima pero realista en Azure par
     _Checks_
     - Peering en estado “Connected”
     - Rutas efectivas muestran default route hacia el firewall (una vez exista)  
-
-3. **Firewall + Policy + logging**
-   Objetivo: salida controlada + trazabilidad de egreso.
-    - Azure Firewall (con subnets requeridas)
-    - Firewall Policy con:
-        - reglas mínimas (DNS, NTP, ACR/KeyVault/Storage si aplican)
-        - (opcional) threat intelligence en “Alert/Deny”
-    - Diagnostic settings → Log Analytics  
-    
-4. **Bastion + acceso admin**
+   
+3 **Bastion + acceso admin**
    Objetivo: cero admin público.
     - Bastion en Hub
     - VMs (API y DB) sin Public IP
-    - NSGs restringiendo:
-        - nada de SSH/RDP desde Internet
-        - permitir solo lo mínimo desde Bastion/Hub  
         
     _Checks_
     - No existe Public IP asociada a NICs
     - Acceso a VM solo vía Bastion  
 
-5. **App Gateway WAF + “API solo por entrada única”**
+4. **Firewall + Policy**
+   Objetivo: salida controlada + trazabilidad de egreso.
+    - Azure Firewall (con subnets requeridas)
+    - Firewall Policy con:
+        - reglas mínimas (DNS, NTP, ACR/KeyVault/Storage si aplican)
+
+5. **Seguridad en la red (Network Security Groups)**
+    NSGs (Network Security Groups): Vital. El Firewall controla quién entra a la VNet (Nivel 4-7), pero el NSG controla el tráfico entre subredes (Micro-segmentación).
+    Objetivo: La subred de app solo pueda hablar con la snubnet de DB por el puerto de la base de datos (ej. 5432 o 1433).
+    Solo recibir tráfico desde la Hub (Bastion y Firewall)
+
+6. **Resolucion de nombres (DNS Private Zones)**
+    Indispensable! En el mundo real nadie usa IPs. Quieres que tu Web App busque a la base de datos como sql-app1.internal.com.
+    Objetivo: Que la Web App pueda resolver los nombres de los servicios privados. Igualmente entre VMs.
+
+7. **Logging y monitoreo (Log Analytics & Diagnostic Settings)**
+    Objetivo: Tener trazabilidad de lo que pasa en la red.
+    Lograr ver en tiempo real por qué el Firewall bloqueó un paquete o quién entró por Bastion.
+
+8. **Secretos (Azure Key Vault)**
+    Guardar la contraseña de la DB o mover la SSH Private Key aquí. Es el estándar para manejar secretos.
+
+9. **App Gateway WAF + “API solo por entrada única”**
    Objetivo: endpoint público único (controlado) y backend privado.
    - App Gateway WAF v2 en subnet dedicada
    - Certificado TLS (para lab: self-signed o Key Vault + cert)
