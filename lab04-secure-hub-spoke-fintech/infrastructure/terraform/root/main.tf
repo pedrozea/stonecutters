@@ -129,9 +129,8 @@ module "vms" {
   subnet_id = each.value.subnet_id
   vm_size   = each.value.vm_size
 
-  resource_group_name = module.rg_workloads[each.key.environment].name
+  resource_group_name = module.rg_workloads[each.value.environment].name
   location            = var.location
   public_key          = tls_private_key.ssh_key.public_key_openssh
   admin_username      = "adminuser"
 }
-

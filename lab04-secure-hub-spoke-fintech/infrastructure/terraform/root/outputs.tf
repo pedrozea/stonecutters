@@ -6,9 +6,14 @@
 # Resource Group
 # =============================================================================
 
-output "resource_group_name" {
-  description = "Name of the created resource group"
-  value       = module.resource_group.name
+output "resource_group_hub_name" {
+  description = "Name of the Hub resource group"
+  value       = module.rg_hub.name
+}
+
+output "resource_group_workloads_names" {
+  description = "Names of the Workloads resource groups"
+  value       = { for k, v in module.rg_workloads : k => v.name }
 }
 
 # =============================================================================
