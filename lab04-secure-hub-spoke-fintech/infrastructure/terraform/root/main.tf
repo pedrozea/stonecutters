@@ -3,13 +3,23 @@
 # =============================================================================
 
 # =============================================================================
-# Resource Group
+# Resource Groups
 # =============================================================================
 
-module "resource_group" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.5.1"
+# --- Hub Resource Group ---
+module "rg_hub" {
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.6.0"
+  name     = "rg-hub-${var.resource_suffix}"
+  location = var.location
+  tags     = local.tags
+}
 
-  name     = "rg-${var.resource_suffix}"
+# --- Workloads Resource Group ---
+module "rg_workloads" {
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.6.0"
+  for_each = local.environments
+
+  name     = "rg-${each.key}-${var.resource_suffix}"
   location = var.location
   tags     = local.tags
 }
@@ -22,8 +32,8 @@ module "hub_vnet" {
   source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.5.1"
 
   name                = var.hub_vnet_name
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
+  resource_group_name = module.rg_hub.name
+  location            = module.rg_hub.location
   address_space       = var.hub_address_space
 
   # ---- Subnets ----
@@ -32,6 +42,20 @@ module "hub_vnet" {
   gateway_subnet_prefix  = var.gateway_subnet_prefix
 
   tags = local.tags
+}
+
+# =============================================================================
+# Azure Bastion
+# =============================================================================
+
+module "bastion" {
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.5.1"
+
+  name                = "bas-shared-hub-${var.resource_suffix}"
+  resource_group_name = module.rg_hub.name
+  location            = module.rg_hub.location
+  subnet_id           = module.hub_vnet.subnet_ids["AzureBastionSubnet"] # Extract the ID of the "AzureBastionSubnet" subnet from the Hub
+  tags                = local.tags
 }
 
 # =============================================================================
@@ -46,30 +70,16 @@ module "spokes" {
   address_space = each.value.space
   subnets       = each.value.subnets
 
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
+  resource_group_name = module.rg_workloads[each.key].name
+  location            = var.location
 
   # Hub VNet Connection
   hub_vnet_id             = module.hub_vnet.vnet_id
   hub_vnet_name           = module.hub_vnet.vnet_name
-  hub_resource_group_name = module.resource_group.name
+  hub_resource_group_name = module.rg_hub.name
   hub_firewall_private_ip = var.hub_firewall_private_ip
 
   tags = local.tags
-}
-
-# =============================================================================
-# Azure Bastion
-# =============================================================================
-
-module "bastion" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.5.1"
-
-  name                = "bas-shared-hub-${var.resource_suffix}"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
-  subnet_id           = module.hub_vnet.subnet_ids["AzureBastionSubnet"] # Extract the ID of the "AzureBastionSubnet" subnet from the Hub
-  tags                = local.tags
 }
 
 # =============================================================================
@@ -82,7 +92,7 @@ resource "tls_private_key" "ssh_key" {
   rsa_bits  = 4096
 }
 
-# Save private key locally to use with Bastion
+# Save private key locally in tfstate to use with Bastion
 resource "local_file" "private_key" {
   content         = tls_private_key.ssh_key.private_key_pem
   filename        = "${path.module}/keys/lab04-ssh-key.pem"
@@ -101,7 +111,7 @@ module "vms" {
   subnet_id = each.value.subnet_id
   vm_size   = each.value.vm_size
 
-  resource_group_name = module.resource_group.name
+  resource_group_name = module.rg_workloads[each.key.environment].name
   location            = var.location
   public_key          = tls_private_key.ssh_key.public_key_openssh
   admin_username      = "adminuser"
