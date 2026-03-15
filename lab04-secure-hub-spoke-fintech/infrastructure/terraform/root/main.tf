@@ -133,4 +133,5 @@ module "vms" {
   location            = var.location
   public_key          = tls_private_key.ssh_key.public_key_openssh
   admin_username      = "adminuser"
+  tags                = local.tags
 }
