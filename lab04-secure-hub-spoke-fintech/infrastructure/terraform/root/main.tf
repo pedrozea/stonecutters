@@ -51,12 +51,11 @@ module "hub_vnet" {
 module "bastion" {
   source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.6.3"
 
-  name                  = "bas-shared-hub-${var.resource_suffix}"
-  resource_group_name   = module.rg_hub.name
-  location              = module.rg_hub.location
-  subnet_id             = module.hub_vnet.subnet_ids["AzureBastionSubnet"]
-  bastion_subnet_prefix = var.bastion_subnet_prefix
-  tags                  = local.tags
+  name                = "bas-shared-hub-${var.resource_suffix}"
+  resource_group_name = module.rg_hub.name
+  location            = module.rg_hub.location
+  subnet_id           = module.hub_vnet.subnet_ids["AzureBastionSubnet"]
+  tags                = local.tags
 }
 
 # =============================================================================
@@ -97,6 +96,7 @@ module "spokes" {
   hub_vnet_name           = module.hub_vnet.vnet_name
   hub_resource_group_name = module.rg_hub.name
   hub_firewall_private_ip = module.firewall.private_ip
+  bastion_subnet_prefix   = var.bastion_subnet_prefix
 
   tags = local.tags
 }
