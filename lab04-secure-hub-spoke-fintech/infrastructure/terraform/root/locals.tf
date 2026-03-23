@@ -110,9 +110,10 @@ locals {
 
   # ================== Azure Bastion NSG Rules ==================
   bastion_nsg_rules = [
+    # ------------------ Inbound ------------------
     {
       name                       = "AllowHttpsInbound"
-      priority                   = 120
+      priority                   = 100
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
@@ -123,7 +124,7 @@ locals {
     },
     {
       name                       = "AllowGatewayManagerInbound"
-      priority                   = 130
+      priority                   = 110
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
@@ -133,13 +134,37 @@ locals {
       destination_address_prefix = "*"
     },
     {
+      name                       = "AllowAzureLoadBalancerInbound"
+      priority                   = 120
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "443"
+      source_address_prefix      = "AzureLoadBalancer"
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "AllowBastionHostCommunicationInbound"
+      priority                   = 130
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "*"
+      source_port_range          = "*"
+      destination_port_range     = "8080, 5701"
+      source_address_prefix      = "VirtualNetwork"
+      destination_address_prefix = "VirtualNetwork"
+    },
+
+    # ------------------ Outbound ------------------
+    {
       name                       = "AllowSshRdpOutbound"
       priority                   = 100
       direction                  = "Outbound"
       access                     = "Allow"
-      protocol                   = "Tcp"
+      protocol                   = "*"
       source_port_range          = "*"
-      destination_port_range     = "22"
+      destination_port_range     = "22, 3389"
       source_address_prefix      = "*"
       destination_address_prefix = "VirtualNetwork"
     },
@@ -153,6 +178,28 @@ locals {
       destination_port_range     = "443"
       source_address_prefix      = "*"
       destination_address_prefix = "AzureCloud"
+    },
+    {
+      name                       = "AllowBastionHostCommunicationOutbound"
+      priority                   = 120
+      direction                  = "Outbound"
+      access                     = "Allow"
+      protocol                   = "*"
+      source_port_range          = "*"
+      destination_port_range     = "8080, 5701"
+      source_address_prefix      = "VirtualNetwork"
+      destination_address_prefix = "VirtualNetwork"
+    },
+    {
+      name                       = "AllowHttpOutbound"
+      priority                   = 130
+      direction                  = "Outbound"
+      access                     = "Allow"
+      protocol                   = "*"
+      source_port_range          = "*"
+      destination_port_range     = "80"
+      source_address_prefix      = "*"
+      destination_address_prefix = "Internet"
     }
   ]
 
