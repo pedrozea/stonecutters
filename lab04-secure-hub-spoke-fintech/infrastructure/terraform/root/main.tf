@@ -8,7 +8,7 @@
 
 # --- Hub Resource Group ---
 module "rg_hub" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.2"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.3"
   name     = "rg-hub-${var.resource_suffix}"
   location = var.location
   tags     = local.tags
@@ -16,7 +16,7 @@ module "rg_hub" {
 
 # --- Workloads Resource Group ---
 module "rg_workloads" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.2"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.3"
   for_each = local.environments
 
   name     = "rg-${each.key}-${var.resource_suffix}"
@@ -29,7 +29,7 @@ module "rg_workloads" {
 # =============================================================================
 
 module "hub_vnet" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.7.2"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.7.3"
 
   name                = var.hub_vnet_name
   resource_group_name = module.rg_hub.name
@@ -49,7 +49,7 @@ module "hub_vnet" {
 # =============================================================================
 
 module "bastion" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.7.2"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.7.3"
 
   name                   = "bas-shared-hub-${var.resource_suffix}"
   resource_group_name    = module.rg_hub.name
@@ -65,7 +65,7 @@ module "bastion" {
 # =============================================================================
 
 module "firewall" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_firewall?ref=v0.7.2"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_firewall?ref=v0.7.3"
 
   name                = "fw-shared-hub-${var.resource_suffix}"
   resource_group_name = module.rg_hub.name
@@ -83,7 +83,7 @@ module "firewall" {
 # =============================================================================
 
 module "spokes" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.7.2"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.7.3"
   for_each = local.spoke_inventory
 
   name          = each.value.name
@@ -124,7 +124,7 @@ resource "local_file" "private_key" {
 # =============================================================================
 
 module "vms" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.7.2"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.7.3"
   for_each = local.vm_inventory
 
   name      = each.key
@@ -142,24 +142,10 @@ module "vms" {
 # Network Security Groups (NSGs)
 # =============================================================================
 
-# ---- Azure Bastion NSG Rules ----
-module "nsg_bastion" {
-  source              = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/network_security_group?ref=v0.7.2"
-  name                = "nsg-bastion-hub"
-  location            = var.location
-  resource_group_name = module.rg_hub.name
-  tags                = local.tags
-  security_rules      = local.bastion_nsg_rules
-}
-
-resource "azurerm_subnet_network_security_group_association" "bastion_assoc" {
-  subnet_id                 = module.hub_vnet.subnet_ids["AzureBastionSubnet"]
-  network_security_group_id = module.nsg_bastion.id
-}
 
 # ---- Application Tier NSG Rules ----
 module "nsg_app" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/network_security_group?ref=v0.7.2"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/network_security_group?ref=v0.7.3"
   for_each = local.environments
 
   name                = "nsg-${each.key}-app"
@@ -201,7 +187,7 @@ resource "azurerm_subnet_network_security_group_association" "app_assoc" {
 
 # ---- Database Tier NSG Rules ----
 module "nsg_db" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/network_security_group?ref=v0.7.2"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/network_security_group?ref=v0.7.3"
   for_each = local.environments
 
   name                = "nsg-${each.key}-db"

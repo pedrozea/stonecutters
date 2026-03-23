@@ -65,6 +65,11 @@ output "bastion_sku" {
   value       = module.bastion.bastion_sku
 }
 
+output "bastion_nsg" {
+  description = "ID of the Bastion NSG"
+  value       = module.bastion.bastion_nsg
+}
+
 # =============================================================================
 # VM List
 # =============================================================================
