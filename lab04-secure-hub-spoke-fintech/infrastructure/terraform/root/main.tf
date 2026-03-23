@@ -8,7 +8,7 @@
 
 # --- Hub Resource Group ---
 module "rg_hub" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.1."
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.2"
   name     = "rg-hub-${var.resource_suffix}"
   location = var.location
   tags     = local.tags
@@ -16,7 +16,7 @@ module "rg_hub" {
 
 # --- Workloads Resource Group ---
 module "rg_workloads" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.1."
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.2"
   for_each = local.environments
 
   name     = "rg-${each.key}-${var.resource_suffix}"
@@ -29,7 +29,7 @@ module "rg_workloads" {
 # =============================================================================
 
 module "hub_vnet" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.7.1."
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.7.2"
 
   name                = var.hub_vnet_name
   resource_group_name = module.rg_hub.name
@@ -49,7 +49,7 @@ module "hub_vnet" {
 # =============================================================================
 
 module "bastion" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.7.1."
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.7.2"
 
   name                   = "bas-shared-hub-${var.resource_suffix}"
   resource_group_name    = module.rg_hub.name
@@ -65,7 +65,7 @@ module "bastion" {
 # =============================================================================
 
 module "firewall" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_firewall?ref=v0.7.1."
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_firewall?ref=v0.7.2"
 
   name                = "fw-shared-hub-${var.resource_suffix}"
   resource_group_name = module.rg_hub.name
@@ -83,7 +83,7 @@ module "firewall" {
 # =============================================================================
 
 module "spokes" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.7.1."
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.7.2"
   for_each = local.spoke_inventory
 
   name          = each.value.name
@@ -124,7 +124,7 @@ resource "local_file" "private_key" {
 # =============================================================================
 
 module "vms" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.7.1."
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.7.2"
   for_each = local.vm_inventory
 
   name      = each.key
@@ -136,4 +136,97 @@ module "vms" {
   public_key          = tls_private_key.ssh_key.public_key_openssh
   admin_username      = "adminuser"
   tags                = local.tags
+}
+
+# =============================================================================
+# Network Security Groups (NSGs)
+# =============================================================================
+
+# ---- Azure Bastion NSG Rules ----
+module "nsg_bastion" {
+  source              = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/network_security_group?ref=v0.7.2"
+  name                = "nsg-bastion-hub"
+  location            = var.location
+  resource_group_name = module.rg_hub.name
+  tags                = local.tags
+  security_rules      = local.bastion_nsg_rules
+}
+
+resource "azurerm_subnet_network_security_group_association" "bastion_assoc" {
+  subnet_id                 = module.hub_vnet.subnet_ids["AzureBastionSubnet"]
+  network_security_group_id = module.nsg_bastion.id
+}
+
+# ---- Application Tier NSG Rules ----
+module "nsg_app" {
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/network_security_group?ref=v0.7.2"
+  for_each = local.environments
+
+  name                = "nsg-${each.key}-app"
+  location            = var.location
+  resource_group_name = module.rg_workloads[each.key].name
+  tags                = local.tags
+
+  security_rules = [
+    {
+      name                       = "Allow-Web-Inbound"
+      priority                   = 100
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "80"
+      source_address_prefix      = module.firewall.private_ip
+      destination_address_prefix = "*"
+    },
+    {
+      name                       = "Allow-Bastion-SSH"
+      priority                   = 110
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "22"
+      source_address_prefix      = var.bastion_subnet_prefix
+      destination_address_prefix = "*"
+    }
+  ]
+}
+
+resource "azurerm_subnet_network_security_group_association" "app_assoc" {
+  for_each                  = local.environments
+  subnet_id                 = module.spokes[each.key].subnet_ids[var.app_subnet_name]
+  network_security_group_id = module.nsg_app[each.key].id
+}
+
+# ---- Database Tier NSG Rules ----
+module "nsg_db" {
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/network_security_group?ref=v0.7.2"
+  for_each = local.environments
+
+  name                = "nsg-${each.key}-db"
+  location            = var.location
+  resource_group_name = module.rg_workloads[each.key].name
+  tags                = local.tags
+
+  # Zero-Trust: Only trust the App subnet of its own environment
+  security_rules = [
+    {
+      name                       = "Allow-App-to-DB"
+      priority                   = 100
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = var.db_port
+      source_address_prefix      = local.spoke_inventory[each.key].subnets[var.app_subnet_name]
+      destination_address_prefix = "*"
+    }
+  ]
+}
+
+resource "azurerm_subnet_network_security_group_association" "db_assoc" {
+  for_each                  = local.environments
+  subnet_id                 = module.spokes[each.key].subnet_ids[var.db_subnet_name]
+  network_security_group_id = module.nsg_db[each.key].id
 }

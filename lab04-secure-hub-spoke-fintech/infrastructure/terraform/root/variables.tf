@@ -78,7 +78,7 @@ variable "bastion_sku" {
   type        = string
 }
 
-variable "shareable_link_enabled" {
+variable "bastion_shareable_link_enabled" {
   description = "Enable shareable link for Azure Bastion"
   type        = bool
 }
@@ -299,4 +299,42 @@ variable "vm_admin_username_app2_prod_db" {
 variable "vm_size_app2_prod_db" {
   description = "VM size for the Database Server for App2 Prod environment"
   type        = string
+}
+
+# =============================================================================
+# Network Security Groups (NSGs)
+# =============================================================================
+
+variable "app_subnet_name" {
+  description = "Standard name for the application tier subnets"
+  type        = string
+  default     = "snet-app"
+}
+
+variable "db_subnet_name" {
+  description = "Standard name for the database tier subnets"
+  type        = string
+  default     = "snet-db"
+}
+
+variable "db_port" {
+  description = "Database port (e.g., 5432 for Postgres, 1433 for SQL Server)"
+  type        = string
+  default     = "5432"
+}
+
+variable "custom_nsg_rules" {
+  description = "List of security rules for the App tier NSG"
+  type = list(object({
+    name                       = string
+    priority                   = number
+    direction                  = string
+    access                     = string
+    protocol                   = string
+    source_port_range          = string
+    destination_port_range     = string
+    source_address_prefix      = string
+    destination_address_prefix = string
+  }))
+  default = []
 }

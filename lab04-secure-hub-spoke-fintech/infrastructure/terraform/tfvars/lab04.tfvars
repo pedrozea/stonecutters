@@ -135,3 +135,26 @@ vm_size_app2_prod_web           = "Standard_B1s"
 vm_name_app2_prod_db           = "vm-app2-prod-db"
 vm_admin_username_app2_prod_db = "adminuser"
 vm_size_app2_prod_db           = "Standard_B1s"
+
+
+# =============================================================================
+# Network Security Groups (NSGs) Rules
+# =============================================================================
+
+app_subnet_name = "snet-app"
+db_subnet_name  = "snet-db"
+db_port         = "5432" # Port for PostgreSQL
+
+custom_nsg_rules = [
+  {
+    name                       = "Allow-Bastion-Inbound"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"          # Port for SSH
+    source_address_prefix      = "10.1.2.0/26" # Bastion subnet prefix
+    destination_address_prefix = "*"
+  }
+]

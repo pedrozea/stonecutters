@@ -62,7 +62,7 @@ output "bastion_public_ip" {
 
 output "bastion_sku" {
   description = "SKU of the Bastion"
-  value       = module.bastion.sku
+  value       = module.bastion.bastion_sku
 }
 
 # =============================================================================
