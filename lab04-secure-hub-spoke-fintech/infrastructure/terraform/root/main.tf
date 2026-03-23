@@ -8,7 +8,7 @@
 
 # --- Hub Resource Group ---
 module "rg_hub" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.6.4"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.1."
   name     = "rg-hub-${var.resource_suffix}"
   location = var.location
   tags     = local.tags
@@ -16,7 +16,7 @@ module "rg_hub" {
 
 # --- Workloads Resource Group ---
 module "rg_workloads" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.6.4"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/resource_group?ref=v0.7.1."
   for_each = local.environments
 
   name     = "rg-${each.key}-${var.resource_suffix}"
@@ -29,7 +29,7 @@ module "rg_workloads" {
 # =============================================================================
 
 module "hub_vnet" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.6.4"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/hub_vnet?ref=v0.7.1."
 
   name                = var.hub_vnet_name
   resource_group_name = module.rg_hub.name
@@ -49,13 +49,15 @@ module "hub_vnet" {
 # =============================================================================
 
 module "bastion" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.6.4"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_bastion?ref=v0.7.1."
 
-  name                = "bas-shared-hub-${var.resource_suffix}"
-  resource_group_name = module.rg_hub.name
-  location            = module.rg_hub.location
-  subnet_id           = module.hub_vnet.subnet_ids["AzureBastionSubnet"]
-  tags                = local.tags
+  name                   = "bas-shared-hub-${var.resource_suffix}"
+  resource_group_name    = module.rg_hub.name
+  location               = module.rg_hub.location
+  subnet_id              = module.hub_vnet.subnet_ids["AzureBastionSubnet"]
+  sku                    = var.bastion_sku
+  shareable_link_enabled = var.bastion_shareable_link_enabled
+  tags                   = local.tags
 }
 
 # =============================================================================
@@ -63,7 +65,7 @@ module "bastion" {
 # =============================================================================
 
 module "firewall" {
-  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_firewall?ref=v0.6.4"
+  source = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/azure_firewall?ref=v0.7.1."
 
   name                = "fw-shared-hub-${var.resource_suffix}"
   resource_group_name = module.rg_hub.name
@@ -81,7 +83,7 @@ module "firewall" {
 # =============================================================================
 
 module "spokes" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.6.4"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/spoke_vnet?ref=v0.7.1."
   for_each = local.spoke_inventory
 
   name          = each.value.name
@@ -122,7 +124,7 @@ resource "local_file" "private_key" {
 # =============================================================================
 
 module "vms" {
-  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.6.4"
+  source   = "git::https://github.com/pedrozea/azure-terraform-modules.git//modules/linux_vm?ref=v0.7.1."
   for_each = local.vm_inventory
 
   name      = each.key

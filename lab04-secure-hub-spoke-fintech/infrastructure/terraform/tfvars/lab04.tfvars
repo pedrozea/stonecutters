@@ -36,6 +36,10 @@ hub_firewall_network_rules = [
   }
 ]
 
+# ---- Azure Bastion ----
+bastion_sku                    = "Standard"
+bastion_shareable_link_enabled = true
+
 # =============================================================================
 # APP 1 - Spokes (Dev & Prod)
 # =============================================================================

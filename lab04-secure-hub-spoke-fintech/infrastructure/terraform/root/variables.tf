@@ -72,6 +72,17 @@ variable "hub_firewall_network_rules" {
   default = []
 }
 
+# ---- Azure Bastion ----
+variable "bastion_sku" {
+  description = "SKU for the Azure Bastion (Basic or Standard)"
+  type        = string
+}
+
+variable "shareable_link_enabled" {
+  description = "Enable shareable link for Azure Bastion"
+  type        = bool
+}
+
 # =============================================================================
 # APP 1 - Spokes (Dev & Prod)
 # =============================================================================

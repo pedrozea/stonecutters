@@ -60,6 +60,11 @@ output "bastion_public_ip" {
   value       = module.bastion.public_ip_address
 }
 
+output "bastion_sku" {
+  description = "SKU of the Bastion"
+  value       = module.bastion.sku
+}
+
 # =============================================================================
 # VM List
 # =============================================================================
